@@ -47,3 +47,35 @@ func (c *Client) CreateCompletionStream(
 	}
 	return
 }
+
+// CreateCompletionStreamByCustom — more parameters supported 
+func (c *Client) CreateCompletionStreamByCustom(
+	ctx context.Context,
+	model, prompt string,
+	request any,
+) (stream *CompletionStream, err error) {
+	urlSuffix := "/completions"
+	if !checkEndpointSupportsModel(urlSuffix, model) {
+		err = ErrCompletionUnsupportedModel
+		return
+	}
+
+	if !checkPromptType(prompt) {
+		err = ErrCompletionRequestPromptTypeNotSupported
+		return
+	}
+
+	req, err := c.newRequest(ctx, "POST", c.fullURL(urlSuffix, model), withBody(request))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := sendRequestStream[CompletionResponse](c, req)
+	if err != nil {
+		return
+	}
+	stream = &CompletionStream{
+		streamReader: resp,
+	}
+	return
+}
