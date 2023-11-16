@@ -51,21 +51,20 @@ func (c *Client) CreateCompletionStream(
 // CreateCompletionStreamByCustom — more parameters supported 
 func (c *Client) CreateCompletionStreamByCustom(
 	ctx context.Context,
-	model, prompt string,
-	request any,
+	request CompletionCustomRequest,
 ) (stream *CompletionStream, err error) {
 	urlSuffix := "/completions"
-	if !checkEndpointSupportsModel(urlSuffix, model) {
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrCompletionUnsupportedModel
 		return
 	}
 
-	if !checkPromptType(prompt) {
+	if !checkPromptType(request.Prompt) {
 		err = ErrCompletionRequestPromptTypeNotSupported
 		return
 	}
 
-	req, err := c.newRequest(ctx, "POST", c.fullURL(urlSuffix, model), withBody(request))
+	req, err := c.newRequest(ctx, "POST", c.fullURL(urlSuffix, request.Model), withBody(request))
 	if err != nil {
 		return nil, err
 	}
